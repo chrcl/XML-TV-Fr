@@ -18,7 +18,9 @@ class MyCanal extends AbstractProvider implements ProviderInterface
     protected static array $apiKey = [];
     protected string $region = 'fr';
     protected bool $enableDetails;
-    private static array $HEADERS = ['Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    private static array $HEADERS = [
+        'User-Agent' => 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:148.0) Gecko/20100101 Firefox/148.0',
+        'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Language' => 'fr-FR,fr-CA;q=0.9,en;q=0.8,en-US;q=0.7',
         'Accept-Encoding' => 'gzip, deflate, br, zstd',
         'Sec-GPC' => '1',
@@ -28,7 +30,6 @@ class MyCanal extends AbstractProvider implements ProviderInterface
         'Sec-Fetch-Mode' => 'navigate',
         'Sec-Fetch-Site' => 'none',
         'Sec-Fetch-User' => '?1',
-        'User-Agent' => 'Mozilla/5.0 (X11; Linux x86_64; rv:95.0) Gecko/20100101 Firefox/95.0',
         'Priority' => 'u=0, i'];
     public function __construct(Client $client, ?float $priority = null, array $extraParam = [])
     {
@@ -43,7 +44,7 @@ class MyCanal extends AbstractProvider implements ProviderInterface
     protected function getApiKey()
     {
         if (!isset(self::$apiKey[$this->region])) {
-            $result = $this->getContentFromURL('https://www.canalplus.com/' . $this->region . '/programme-tv/', self::$HEADERS);
+            $result = $this->getContentFromURL('https://www.canalplus.com/' . $this->region . '/programme-tv/', array_merge(['Host' => 'www.canalplus.com'], self::$HEADERS));
             $token = @explode('"', explode('"token":"', $result)[1])[0];
             if (empty($token)) {
                 throw new \Exception('Impossible to retrieve MyCanal API Key');
