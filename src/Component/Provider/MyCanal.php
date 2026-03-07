@@ -31,6 +31,47 @@ class MyCanal extends AbstractProvider implements ProviderInterface
         'Sec-Fetch-Site' => 'none',
         'Sec-Fetch-User' => '?1',
         'Priority' => 'u=0, i'];
+
+    private static array $OFFER_ZONES = [
+        'fr' => 'cpfra',
+        'bj' => 'cpafr',
+        'bf' => 'cpafr',
+        'bi' => 'cpafr',
+        'cm' => 'cpafr',
+        'cv' => 'cpafr',
+        'cg' => 'cpafr',
+        'ci' => 'cpafr',
+        'dj' => 'cpafr',
+        'ga' => 'cpafr',
+        'gm' => 'cpafr',
+        'gh' => 'cpafr',
+        'gp' => 'cpant',
+        'gn' => 'cpafr',
+        'gw' => 'cpafr',
+        'gq' => 'cpafr',
+        'gf' => 'cpant',
+        'mg' => 'cpmdg',
+        'ml' => 'cpafr',
+        'mq' => 'cpant',
+        'mu' => 'cpmus',
+        'mr' => 'cpafr',
+        'yt' => 'cpreu',
+        'nc' => 'cpncl',
+        'ne' => 'cpafr',
+        'pl' => 'cppol',
+        'cf' => 'cpafr',
+        'cd' => 'cpafr',
+        're' => 'cpreu',
+        'rw' => 'cpafr',
+        'bl' => 'cpant',
+        'mf' => 'cpant',
+        'sn' => 'cpafr',
+        'sl' => 'cpafr',
+        'ch' => 'cpche',
+        'td' => 'cpafr',
+        'tg' => 'cpafr',
+        'wf' => 'cpncl'
+    ];
     public function __construct(Client $client, ?float $priority = null, array $extraParam = [])
     {
         if (isset($extraParam['mycanal_enable_details'])) {
@@ -44,8 +85,8 @@ class MyCanal extends AbstractProvider implements ProviderInterface
     protected function getApiKey()
     {
         if (!isset(self::$apiKey[$this->region])) {
-            $result = $this->getContentFromURL('https://www.canalplus.com/' . $this->region . '/programme-tv/', array_merge(['Host' => 'www.canalplus.com'], self::$HEADERS));
-            $token = @explode('"', explode('"token":"', $result)[1])[0];
+            $result = $this->getContentFromURL('https://hodor.canalplus.pro/api/v2/mycanal/authenticate.json/android/6.0?appLocation='.$this->region.'&offerZone='.self::$OFFER_ZONES[$this->region], self::$HEADERS, true);
+            $token = @json_decode($result, true)['token'];
             if (empty($token)) {
                 throw new \Exception('Impossible to retrieve MyCanal API Key');
             }
