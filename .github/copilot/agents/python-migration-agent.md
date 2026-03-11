@@ -1,3 +1,9 @@
+---
+name: python-migration-agent
+description: AI agent responsible for guiding the incremental PHP-to-Python migration of the XML-TV-Fr project. Use for code analysis, migration planning, specification review, and Python code generation.
+version: "1.0"
+---
+
 # Python Migration Agent
 
 ## Role

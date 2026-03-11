@@ -1,3 +1,9 @@
+---
+name: migration-planning
+description: Explains how to produce a step-by-step migration plan for a PHP module before writing any Python code. Use after PHP code analysis and specification writing to break the migration into verifiable steps.
+version: "1.0"
+---
+
 # Skill: Migration Planning
 
 ## Purpose

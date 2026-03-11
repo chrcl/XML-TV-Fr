@@ -1,3 +1,8 @@
+---
+description: 'Python coding instructions for the PHP-to-Python migration of XML-TV-Fr. Enforces Python 3.12+, strict typing, Pythonic idioms, and spec-first development. Applies to all Python files.'
+applyTo: 'python/**'
+---
+
 # Copilot Instructions — Python Migration
 
 ## Scope

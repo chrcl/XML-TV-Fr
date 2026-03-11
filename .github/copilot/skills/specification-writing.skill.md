@@ -1,3 +1,9 @@
+---
+name: specification-writing
+description: Explains how to write a technical specification for a PHP-to-Python migration unit. Use before any code generation to define inputs, outputs, business rules, edge cases, and test plan. Code must not be written without an approved spec.
+version: "1.0"
+---
+
 # Skill: Specification Writing
 
 ## Purpose

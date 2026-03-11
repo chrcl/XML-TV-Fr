@@ -1,3 +1,9 @@
+---
+name: test-strategy
+description: Explains how to derive Python tests from PHP behaviour during migration. Use when writing unit tests, integration tests, and parity tests for migrated modules to ensure functional equivalence.
+version: "1.0"
+---
+
 # Skill: Test Strategy
 
 ## Purpose

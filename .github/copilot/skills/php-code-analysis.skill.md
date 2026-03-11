@@ -1,3 +1,9 @@
+---
+name: php-code-analysis
+description: Describes how the agent should analyze legacy PHP code in the XML-TV-Fr project. Use before migrating any PHP class or module to identify boundaries, dependencies, business rules, and side effects.
+version: "1.0"
+---
+
 # Skill: PHP Code Analysis
 
 ## Purpose

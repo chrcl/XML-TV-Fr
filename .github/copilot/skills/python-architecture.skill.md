@@ -1,3 +1,9 @@
+---
+name: python-architecture
+description: Defines how Python modules, packages, and layers should be structured in the migrated XML-TV-Fr codebase. Use when creating new Python files or deciding where a migrated component should live.
+version: "1.0"
+---
+
 # Skill: Python Architecture
 
 ## Purpose
