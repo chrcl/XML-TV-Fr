@@ -2,12 +2,20 @@
 
 from __future__ import annotations
 
+import json
+
+from xmltvfr.utils.terminal_icon import TerminalIcon
 from xmltvfr.utils.utils import (
     colorize,
     get_canadian_rating_system,
+    get_channels_from_guide,
+    get_provider,
+    get_providers,
     get_start_and_end_dates_from_xml_string,
     get_time_range_from_xml_string,
+    has_one_thread_running,
     recurse_rmdir,
+    replace_buggy_width_characters,
     slugify,
 )
 
@@ -134,3 +142,81 @@ def test_recurse_rmdir(tmp_path):
 
 def test_recurse_rmdir_nonexistent(tmp_path):
     assert recurse_rmdir(str(tmp_path / "nope")) is False
+
+
+# ---------------------------------------------------------------------------
+# replace_buggy_width_characters
+# ---------------------------------------------------------------------------
+
+
+def test_replace_buggy_width_characters():
+    success = TerminalIcon.success()
+    error = TerminalIcon.error()
+    pause = TerminalIcon.pause()
+    test_str = f"prefix {success} middle {error} suffix {pause}"
+    result = replace_buggy_width_characters(test_str)
+    assert success not in result
+    assert error not in result
+    assert pause not in result
+    # Each wide char is replaced with two spaces
+    assert "  " in result
+
+
+# ---------------------------------------------------------------------------
+# get_channels_from_guide
+# ---------------------------------------------------------------------------
+
+
+def test_get_channels_from_guide_single_file(tmp_path):
+    channels_file = tmp_path / "channels.json"
+    channels_file.write_text(json.dumps({"TF1.fr": {"name": "TF1"}}))
+    guide = {"channels": str(channels_file)}
+    result = get_channels_from_guide(guide)
+    assert result == {"TF1.fr": {"name": "TF1"}}
+
+
+def test_get_channels_from_guide_list(tmp_path):
+    file1 = tmp_path / "channels1.json"
+    file2 = tmp_path / "channels2.json"
+    file1.write_text(json.dumps({"TF1.fr": {"name": "TF1"}, "France2.fr": {"name": "France 2"}}))
+    file2.write_text(json.dumps({"France3.fr": {"name": "France 3"}}))
+    guide = {"channels": [str(file1), str(file2)]}
+    result = get_channels_from_guide(guide)
+    assert "TF1.fr" in result
+    assert "France2.fr" in result
+    assert "France3.fr" in result
+
+
+# ---------------------------------------------------------------------------
+# has_one_thread_running
+# ---------------------------------------------------------------------------
+
+
+def test_has_one_thread_running_true():
+    class MockThread:
+        def is_running(self) -> bool:
+            return True
+
+    assert has_one_thread_running([MockThread()]) is True
+
+
+def test_has_one_thread_running_false():
+    class MockThread:
+        def is_running(self) -> bool:
+            return False
+
+    assert has_one_thread_running([MockThread()]) is False
+
+
+# ---------------------------------------------------------------------------
+# get_provider / get_providers
+# ---------------------------------------------------------------------------
+
+
+def test_get_provider_none():
+    assert get_provider("NonExistent") is None
+
+
+def test_get_providers_returns_list():
+    result = get_providers()
+    assert isinstance(result, list)

@@ -65,3 +65,74 @@ def test_get_last_log():
     logger.set_log_level("info")
     logger.log("last message")
     assert logger.get_last_log() == "last message"
+
+
+# ---------------------------------------------------------------------------
+# update_line
+# ---------------------------------------------------------------------------
+
+
+def test_update_line(capsys):
+    _reset()
+    logger.set_log_level("info")
+    logger.update_line("hello")
+    captured = capsys.readouterr()
+    assert "\r" in captured.out
+    _reset()
+
+
+# ---------------------------------------------------------------------------
+# save
+# ---------------------------------------------------------------------------
+
+
+def test_save_debug_level(tmp_path):
+    _reset()
+    logger.set_log_folder(str(tmp_path))
+    logger.set_log_level("debug")
+    logger.add_channel_entry("guide.json", "TF1.fr", "2025-01-01")
+    logger.save()
+    json_files = list(tmp_path.glob("*.json"))
+    assert len(json_files) == 1
+    _reset()
+
+
+def test_save_non_debug_level(tmp_path):
+    _reset()
+    logger.set_log_folder(str(tmp_path))
+    logger.set_log_level("info")
+    logger.save()
+    json_files = list(tmp_path.glob("*.json"))
+    assert len(json_files) == 0
+    _reset()
+
+
+# ---------------------------------------------------------------------------
+# add_additional_error
+# ---------------------------------------------------------------------------
+
+
+def test_add_additional_error():
+    _reset()
+    logger.add_additional_error("guide.json", "SomeError", "Something went wrong")
+    errors = logger._log_file["guide.json"]["additional_errors"]
+    assert len(errors) == 1
+    assert errors[0]["error"] == "SomeError"
+    assert errors[0]["message"] == "Something went wrong"
+    _reset()
+
+
+# ---------------------------------------------------------------------------
+# clear_log
+# ---------------------------------------------------------------------------
+
+
+def test_clear_log(tmp_path):
+    _reset()
+    logger.set_log_folder(str(tmp_path))
+    (tmp_path / "test1.json").write_text("{}")
+    (tmp_path / "test2.json").write_text("{}")
+    logger.clear_log()
+    remaining = list(tmp_path.iterdir())
+    assert remaining == []
+    _reset()
