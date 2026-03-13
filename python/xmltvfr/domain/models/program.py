@@ -231,7 +231,7 @@ class Program(Tag):
         # Lazy import to avoid circular dependencies at module load time
         from xmltvfr.domain.static.rating_picto import RatingPicto  # noqa: PLC0415
 
-        picto = RatingPicto.get_picto(str(rating), system)
+        picto = RatingPicto.get_instance().get_picto_from_rating_system(str(rating), system)
         children: dict[str, list[Tag]] = {"value": [Tag("value", str(rating))]}
         if picto is not None:
             children["icon"] = [Tag("icon", None, {"src": picto})]
