@@ -16,8 +16,13 @@ xmltvfr/domain/models/program.py
 xmltvfr/domain/models/tag.py
 xmltvfr/domain/services/__init__.py
 xmltvfr/domain/static/__init__.py
+xmltvfr/domain/static/channel_information.py
 xmltvfr/domain/static/rating_picto.py
 xmltvfr/export/__init__.py
 xmltvfr/providers/__init__.py
 xmltvfr/ui/__init__.py
 xmltvfr/utils/__init__.py
+xmltvfr/utils/logger.py
+xmltvfr/utils/resource_path.py
+xmltvfr/utils/terminal_icon.py
+xmltvfr/utils/utils.py

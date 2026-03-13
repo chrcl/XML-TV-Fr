@@ -18,6 +18,9 @@ _debug_folder: str = "var/logs"
 _last_log: str = ""
 _log_file: dict = {}
 
+# Maximum width used when overwriting the current terminal line
+_MAX_LINE_LENGTH: int = 100
+
 
 # ---------------------------------------------------------------------------
 # Public API
@@ -33,7 +36,7 @@ def set_log_level(level: str) -> None:
 def set_log_folder(path: str) -> None:
     """Create *path* if it does not exist and store it as the log folder."""
     global _debug_folder
-    os.makedirs(path, mode=0o777, exist_ok=True)
+    os.makedirs(path, mode=0o755, exist_ok=True)
     _debug_folder = path.rstrip(os.sep)
 
 
@@ -56,8 +59,8 @@ def update_line(content: str) -> None:
     global _last_log
     previous_log = _last_log
     combined = "\r" + _last_log + content
-    combined = combined[:100]
-    log("\r" + " " * 100)
+    combined = combined[:_MAX_LINE_LENGTH]
+    log("\r" + " " * _MAX_LINE_LENGTH)
     log(combined)
     # Restore _last_log so the caller's context is preserved
     _last_log = previous_log

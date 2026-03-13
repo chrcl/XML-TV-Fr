@@ -74,7 +74,7 @@ class Program(Tag):
 
     def __init__(self, start: datetime, end: datetime) -> None:
         if start > end:
-            raise ValueError("Start date must be before end date")
+            raise ValueError(f"Start date ({start}) must be before end date ({end})")
 
         # Convert to Europe/Paris for display and storage
         self._start: datetime = start.astimezone(_PARIS_TZ)

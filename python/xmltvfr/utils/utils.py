@@ -28,6 +28,13 @@ _providers: list[type] | None = None
 # ---------------------------------------------------------------------------
 
 
+def _is_valid_provider(obj: Any, full_module_name: str) -> bool:
+    """Return ``True`` if *obj* is a provider class defined in *full_module_name*."""
+    return (
+        isinstance(obj, type) and obj.__module__ == full_module_name and callable(getattr(obj, "construct_epg", None))
+    )
+
+
 def get_providers() -> list[type]:
     """Return all provider classes found in the ``xmltvfr.providers`` package.
 
@@ -51,7 +58,7 @@ def get_providers() -> list[type]:
             continue
         for attr_name in dir(module):
             obj = getattr(module, attr_name)
-            if isinstance(obj, type) and obj.__module__ == full_name and callable(getattr(obj, "construct_epg", None)):
+            if _is_valid_provider(obj, full_name):
                 discovered.append(obj)
 
     _providers = discovered
