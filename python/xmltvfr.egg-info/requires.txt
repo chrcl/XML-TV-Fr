@@ -1,0 +1,11 @@
+requests
+lxml
+tzdata
+
+[dev]
+ruff
+black
+mypy
+pytest
+pytest-cov
+types-requests
