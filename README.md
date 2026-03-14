@@ -229,6 +229,110 @@ Les fichiers de sortie sont stockés dans le dossier défini par `output_path`
 configuration.
 
 
+# Automatisation GitHub Actions
+
+## Image Docker (GHCR)
+
+L'image Docker est construite et publiée automatiquement sur
+**GitHub Container Registry** à chaque push sur la branche `master` qui modifie
+`Dockerfile` ou le code Python (`python/**`).
+
+| Image | Description |
+|---|---|
+| `ghcr.io/chrcl/xml-tv-fr:latest` | Dernière version de la branche `master` |
+| `ghcr.io/chrcl/xml-tv-fr:master` | Tag de branche |
+| `ghcr.io/chrcl/xml-tv-fr:sha-<sha>` | Tag de commit exact |
+
+Le workflow correspondant est [`.github/workflows/docker-publish.yml`](.github/workflows/docker-publish.yml).  
+Le workflow [`.github/workflows/docker.yml`](.github/workflows/docker.yml) valide la construction de
+l'image lors des Pull Requests.
+
+## Génération XMLTV (workflow réutilisable)
+
+Le workflow [`.github/workflows/generate-xmltv.yml`](.github/workflows/generate-xmltv.yml)
+est **réutilisable** (`workflow_call`).  Il utilise l'image GHCR pour générer
+les fichiers EPG sans reconstruire l'image.
+
+### Paramètres d'entrée
+
+| Paramètre | Type | Défaut | Description |
+|---|---|---|---|
+| `channels_file` | string | `channels/all.json` | Chemin relatif vers le fichier de chaines |
+| `days` | number | `8` | Nombre de jours d'EPG à générer (1–14) |
+| `output_name` | string | `xmltv` | Nom de base du fichier de sortie (sans extension) |
+| `nb_threads` | number | `4` | Nombre de threads parallèles |
+| `artifact_name` | string | `xmltv-output` | Nom de l'artefact GitHub Actions produit |
+| `image_tag` | string | `latest` | Tag de l'image GHCR à utiliser |
+
+### Appeler le workflow depuis un autre workflow
+
+```yaml
+jobs:
+  my-generation:
+    uses: chrcl/XML-TV-Fr/.github/workflows/generate-xmltv.yml@master
+    with:
+      channels_file: channels/tnt.json
+      days: 7
+      output_name: xmltv-tnt
+      artifact_name: xmltv-tnt
+```
+
+### Présets de chaines disponibles
+
+| Fichier | Description |
+|---|---|
+| `channels/all.json` | Toutes les chaines (232 chaines) |
+| `channels/tnt.json` | Chaines TNT françaises gratuites (20 chaines) |
+
+Pour créer un préset personnalisé, ajoutez un fichier JSON dans `channels/` en
+vous inspirant du format de `channels/all.json`.
+
+## Génération quotidienne et publication sur GitHub Pages
+
+Le workflow [`.github/workflows/daily.yml`](.github/workflows/daily.yml) s'exécute
+**chaque jour à 03h00 UTC** (et peut être déclenché manuellement).  Il appelle
+le workflow réutilisable pour chaque configuration définie dans la matrice, puis
+publie l'ensemble des fichiers générés sur **GitHub Pages**.
+
+### Ajouter ou modifier une configuration
+
+Modifiez la section `matrix.config` dans `daily.yml` :
+
+```yaml
+matrix:
+  config:
+    # Configuration existante
+    - channels_file: channels/all.json
+      days: 8
+      output_name: xmltv-all
+      artifact_name: xmltv-all
+    # Nouvelle configuration
+    - channels_file: channels/ma-selection.json
+      days: 3
+      output_name: xmltv-ma-selection
+      artifact_name: xmltv-ma-selection
+```
+
+### Fichiers publiés
+
+Les fichiers générés sont accessibles sur GitHub Pages sous
+`https://<owner>.github.io/<repo>/` :
+
+| Fichier | Description |
+|---|---|
+| `index.html` | Page d'index avec liens de téléchargement |
+| `xmltv-all.xml` | EPG complet (XML brut) |
+| `xmltv-all.xml.gz` | EPG complet (gzip) |
+| `xmltv-all.xml.zip` | EPG complet (zip) |
+| `xmltv-tnt.xml` | EPG TNT (XML brut) |
+| `xmltv-tnt.xml.gz` | EPG TNT (gzip) |
+| `xmltv-tnt.xml.zip` | EPG TNT (zip) |
+
+> **Prérequis GitHub Pages :** activez GitHub Pages depuis les paramètres du
+> dépôt → *Pages* → source **GitHub Actions**.
+
+---
+
 # Ajouter des services (Providers)
 
 Il est possible d'ajouter des services (`Provider`) autres que ceux fournis.
