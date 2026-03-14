@@ -7,137 +7,256 @@ Site web et documentation : https://xmltvfr.fr/
 
 # Installation
 
-## Natif
-Pour installer XML TV Fr, vous devez posséder:
+## Prérequis
 
-PHP >=8.0 avec les extensions
- - curl
- - zip
- - mbstring
- - xml
- - json
+XML TV Fr utilise **Python ≥ 3.12**.  
+La façon recommandée d'obtenir la bonne version est d'utiliser [pyenv](https://github.com/pyenv/pyenv).
 
-Ainsi que Composer.
- 
-Un `composer install` est requis pour utiliser le script.  
+### 1. Installer pyenv (si besoin)
+
+```bash
+# Linux / macOS via le script officiel
+curl https://pyenv.run | bash
+```
+
+Ajoutez ensuite ces lignes à votre `~/.bashrc` (ou `~/.zshrc`) et relancez votre shell :
+
+```bash
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+```
+
+### 2. Installer Python 3.12 avec pyenv
+
+```bash
+pyenv install 3.12
+pyenv local 3.12      # définit Python 3.12 pour ce dépôt
+```
+
+### 3. Créer et activer un environnement virtuel
+
+Placez-vous à la racine du dépôt, puis :
+
+```bash
+python -m venv .venv
+source .venv/bin/activate   # Windows : .venv\Scripts\activate
+```
+
+### 4. Installer le paquet et ses dépendances
+
+Le code Python se trouve dans le dossier `python/`. Installez-le en mode
+éditable (ce qui rend la commande `xmltvfr` disponible directement dans le
+venv) :
+
+```bash
+cd python
+pip install -e .
+```
+
+Pour installer également les dépendances de développement (linter, tests…) :
+
+```bash
+pip install -e ".[dev]"
+```
 
 ## Utilisation de Docker
 
 Vous pouvez utiliser XML TV Fr avec Docker.
 
-Un fichier [Dockerfile](./Dockerfile) à la racine du projet vous permet d'installer et configurer XML TV Fr en une seule commande.
+Un fichier [Dockerfile](./Dockerfile) à la racine du projet vous permet
+d'installer et configurer XML TV Fr en une seule commande.
 
 ### Construire l'image
-Pour construire l'image, tapez la commande:
+
 ```bash
 docker build -t xmltvfr .
 ```
-Note: Cette commande doit être lancée après chaque mise à jour de XML TV Fr.
+
+> Cette commande doit être lancée après chaque mise à jour de XML TV Fr.
+
 
 # Configuration
 
-Cette partie va vous permettre de configurer XML TV Fr.
+## Liste des chaines (`config/channels.json`)
 
-## Liste des chaines (config/channels.json)
+La liste des chaines doit être indiquée dans le fichier `channels.json` au
+format JSON. Chaque chaine correspond à l'ID d'une chaine (exemple :
+`France2.fr`) présente dans les fichiers de chaines par services (dossier
+`channels_by_providers`).
 
-La liste des chaines doit être indiquée dans le fichier channels.json au format JSON. Chaque chaine correspond à l'ID d'une chaine (Exemple : France2.fr) présente dans les fichiers de chaines par services (dossier channels_by_providers).
 La structure d'un item se fait comme ceci :
-```json
-"IdDelaChaineDansLeProgramme":{"name":"Nom de la chaine","alias":"IDdeLaChaineDansLeXMLTV", "icon":"http://icone de la chaine","priority":["Service1","Service2"]}
-```
-Les champs name, icon, alias et priority sont optionnels. 
-Le champ priority donne un ordre de priorité différent de celui par défaut en indiquant les noms des services (nom des classes dans le dossier classes). Dans l'exemple, Service1 sera appelé en premier et Service2 ne sera appelé que si Service1 échoue. Par exemple si on met en priorité Télérama puis Orange, Télérama sera lancé. Si aucun programme n'est trouvé sur Télérama, Orange est lancé, sinon on continue. Si aucun programme n'est trouvé sur tous les services, la chaine est indiquée HS pour le jour concerné.
-Le champ alias permet de donner un ID alternatif à une chaine que celui renseigné par défaut. Si le champ est absent, c'est l'ID par défaut renseigné dans XML TV Fr qui sera affiché.
 
-## Configuration du programme (config/config.json)
-
-Le fichier config.json est au format JSON. 
 ```json
-{
-  "days" : 1, // Nombre de jours de l'EPG
-  "cache_max_days": 8, // Nombre de jours de cache
-  "output_path": "./xmltv/", // Chemin de destination du XML final
-  "time_limit": 0, // Temps d'éxécution max du script (0=illimité)
-  "memory_limit": -1, // Quantité de mémoire vive max (-1=illimité)
-  "delete_raw_xml": false, // Supprimer le XML brut après génération (true|false)
-  "enable_gz": false, // Activer la compression gz (true|false)
-  "enable_zip": true // Activer la compression zip (true|false),
-  "enable_dummy" : false, // Afficher un EPG mire en cas d'absence de guide pour une chaine 
-  "custom_priority_orders" : {"Telerama": 0.2, "UltraNature": 0.5}, // Modifier l'ordre de priorité pour certains services globalement
-  "guides_to_generate" : [{"channels": "config/channels.json", "filename": "xmltv.xml"}] // liste des XML à générer. Pour chaque élément, `channels` indique le fichier des chaines et `filename` le nom du fichier de sortie,
-  "nb_threads": 3, // Nombre de threads en parallèle. Par défaut 1. Le multithreading nécessite la possibilité d'utiliser shell
-  "min_timerange": 79200, // (22h) Plage horaire minimum d'un fichier de cache pour qu'il soit considéré complet (évite les fichiers partiels).
-  "ui": "MultiColumnUI" // L'affichage dans le terminal. Soit MultiColumnUI, soit ProgressiveUI
+"IdDelaChaineDansLeProgramme": {
+  "name": "Nom de la chaine",
+  "alias": "IDdeLaChaineDansLeXMLTV",
+  "icon": "http://icone-de-la-chaine",
+  "priority": ["Service1", "Service2"]
 }
 ```
 
-# Lancer le script
-## Natif
-Pour démarrer la récupération du guide des programmes, lancez cette commande dans votre terminal (dans le dossier du programme).
-```shell
-php manager.php export
+Les champs `name`, `icon`, `alias` et `priority` sont **optionnels**.
+
+- **`priority`** : donne un ordre de priorité différent de celui par défaut en
+  indiquant les noms des services (nom des classes dans le dossier
+  `python/xmltvfr/providers/`). Dans l'exemple, `Service1` sera appelé en
+  premier et `Service2` ne sera appelé que si `Service1` échoue. Si aucun
+  programme n'est trouvé sur tous les services, la chaine est indiquée *HS*
+  pour le jour concerné.
+- **`alias`** : donne un ID alternatif à une chaine. Si le champ est absent,
+  c'est l'ID par défaut renseigné dans XML TV Fr qui sera affiché.
+
+## Configuration du programme (`config/config.json`)
+
+Copiez le fichier d'exemple fourni et adaptez-le à vos besoins :
+
+```bash
+cp resources/config/default_config.json config/config.json
+cp resources/config/default_channels.json config/channels.json
 ```
-## Docker
-Pour récupérer votre XML, tapez la commande:
+
+Le fichier `config.json` est au format JSON :
+
+```jsonc
+{
+  "days": 8,                  // Nombre de jours de l'EPG
+  "cache_max_days": 8,        // Nombre de jours de cache
+  "output_path": "var/export/", // Chemin de destination du XML final
+  "delete_raw_xml": false,    // Supprimer le XML brut après génération
+  "enable_gz": true,          // Activer la compression gz
+  "enable_zip": true,         // Activer la compression zip
+  "enable_xz": false,         // Activer la compression xz (nécessite 7-Zip)
+  "7zip_path": null,          // Chemin vers le binaire 7-Zip (xz uniquement)
+  "enable_dummy": false,      // Afficher un EPG mire si aucune donnée trouvée
+  "custom_priority_orders": { "Telerama": 0.2, "UltraNature": 0.5 },
+  "guides_to_generate": [
+    { "channels": "config/channels.json", "filename": "xmltv.xml" }
+  ],
+  "nb_threads": 1,            // Threads en parallèle (défaut : 1)
+  "min_timerange": 79200,     // (22 h) Plage min. d'un cache pour être complet
+  "force_todays_grab": false, // Forcer le re-téléchargement du jour courant
+  "ui": "MultiColumnUI"       // Affichage terminal : MultiColumnUI | ProgressiveUI
+}
+```
+
+
+# Lancer le script
+
+Les commandes ci-dessous supposent que le venv est actif (`source .venv/bin/activate`)
+et que vous êtes à la racine du dépôt.
+
+## Générer l'EPG (natif)
+
+```bash
+xmltvfr export
+```
+
+Options disponibles :
+
+| Option | Description |
+|---|---|
+| `--skip-generation` | Réalise l'export sans récupérer de nouvelles données (cache uniquement) |
+| `--keep-cache` | Conserve le cache même s'il est expiré |
+
+## Autres commandes
+
+```bash
+# Récupérer le programme d'une chaine pour un provider et une date donnés
+xmltvfr fetch-channel TF1.fr Orange 2025-12-14 content.xml
+
+# Mettre à jour les logos par défaut depuis un provider
+xmltvfr update-default-logos MyCanal
+
+# Afficher l'aide
+xmltvfr help
+```
+
+## Via Docker
+
 ```bash
 docker run -v ./var/export:/app/var/export -v ./config/:/app/config xmltvfr
 ```
-Vous pouvez remplacer **./var/export** par le dossier de sortie que vous souhaitez.
 
-# Générer le fichier channels.json
+Remplacez `./var/export` par le dossier de sortie souhaité.
 
-Il est possible de générer depuis votre navigateur le fichier channels.json. Pour cela, placez vous dans le dossier de travail du programme et lancez cette commande
 
-Note : Cette option sera supprimée dans de futures versions.
-```shell
-php -S localhost:8080 -t tools
+# Lancer les tests
+
+Les tests unitaires utilisent [pytest](https://pytest.org). Assurez-vous
+d'avoir installé les dépendances de développement (voir plus haut), puis :
+
+```bash
+cd python
+pytest
 ```
-Note : le port 8080 peut être changé par un autre.
 
-Ouvrez ensuite dans votre navigateur http://localhost:8080/ (port à modifier en fonction de celui indiqué dans la commande au dessus).
+Pour afficher la couverture de code :
+
+```bash
+pytest --cov=xmltvfr --cov-report=term-missing
+```
+
+Pour lancer uniquement le linter :
+
+```bash
+ruff check xmltvfr/
+```
+
 
 # Sortie
 
 ## Logs
 
-Les logs sont stockés dans le dossier logs au format JSON. Les derniers logs sont accessibles via le navigateur à l'adresse http://localhost:8080/logs.php (à condition d'avoir lancé la commande précédente).
+Les logs de génération sont écrits dans `var/logs/` au format JSON après
+chaque exécution en mode `debug` (activé par défaut via la commande
+`xmltvfr export`).
 
-## XML TV
+## Fichiers XML TV
 
-Les fichiers de sorties XML sont stockés dans le dossier xmltv au format XML, ZIP et GZ.
-Cette commande indiquera si le dernier fichier XML généré est valide.
+Les fichiers de sortie sont stockés dans le dossier défini par `output_path`
+(par défaut `var/export/`) aux formats XML, ZIP et/ou GZ selon la
+configuration.
 
-# Ajouter des services
 
-Il est possible d'ajouter des services (`Provider`) autres que ceux fournis. Pour cela, il faut ajouter une classe dans le dossier `src/Component/Provider` qui implémente l'interface ProviderInterface et étendre la classe AbstractProvider. 
+# Ajouter des services (Providers)
 
-Le constructeur aura le chemin des XML temporaires d'indiqué.
+Il est possible d'ajouter des services (`Provider`) autres que ceux fournis.
+Pour cela, créez un fichier dans `python/xmltvfr/providers/` qui hérite de
+`AbstractProvider` :
 
-La méthode `getPriority()` doit retourner un flottant entre 0 et 1 pour indiquer la priorité par rapport à d'autres services (comparez les valeurs des autres scripts pour vous situer). L'ordre de priorité doit être indiqué dans le second paramètre du constructeur parent. La méthode `getPriority()` est déjà implémentée dans la classe abstraite.
+```python
+# python/xmltvfr/providers/mon_provider.py
+from xmltvfr.providers.abstract_provider import AbstractProvider
+from xmltvfr.domain.models.channel import Channel
 
-La méthode   `constructEPG(channel,date)` construira un fichier XML pour une chaine à une date donnée. Elle retourne un objet `Channel` si la tâche s'est déroulée avec succès, sinon `false`.
 
-L'instance de chaque `Provider` par date possédera un attribut `channelObj` étant une instance de la classe Channel (si `constructEPG` appelle la classe parente). A cette instance de classe `Channel`, vous pourrez ajouter des programmes (instances de la classe `Program`) avec la méthode `addProgram($start, $end)` (`$start` et `$end` étant des timestamp UNIX) et sur l'instance de chaque programme, vous pourrez définir les infos telles que le titre, les catégories, ... Une fois l'ajout des programmes terminé, il suffira d'appeller la méthode `save()` de l'attribut `channelObj` pour enregistrer le fichier XML pour la chaine et la date en question.
-Exemple :
-```php
+class MonProvider(AbstractProvider):
+    def __init__(self, client, json_path, priority):
+        # Le fichier JSON listant les chaines supportées par ce provider
+        super().__init__(client, "python/xmltvfr/providers/json/MonProvider.json", priority)
 
-    function constructEPG($channel, $date)
-    {
-        parent::constructEPG($channel, $date);
-        $error = false;
-        foreach($results as $result) {
-            $program = $this->channelObj->addProgram(strtotime($result['start']), strtotime($result['end']));
-            $program->addTitle($result["title"], "en"); // argument langue optionnel, par defaut = "fr"
-            $program->addIcon("myIconUrl");
-            $program->addCategory(...)
-            $program->addSubTitle(...)
-            ...
-        }
-        if($error){
-            return false;
-        }
-        return $this->channelObj;
-    }
+    @classmethod
+    def get_priority(cls) -> float:
+        # Flottant entre 0 et 1 ; comparez aux autres providers pour vous situer
+        return 0.5
+
+    def construct_epg(self, channel: str, date: str) -> Channel | bool:
+        channel_obj = super().construct_epg(channel, date)
+
+        # Récupérez et peuplez les programmes ici
+        for result in self._fetch_schedule(channel, date):
+            program = channel_obj.add_program(result["start_ts"], result["end_ts"])
+            program.add_title(result["title"])          # lang="fr" par défaut
+            program.add_icon(result.get("icon"))
+            program.add_category(result.get("category"))
+            program.add_desc(result.get("description"))
+
+        if channel_obj.get_program_count() == 0:
+            return False
+        return channel_obj
 ```
 
-Attention, le nom de la classe du service doit correspondre à son nom de fichier. Bien que PHP, contrairement à Java autorise des noms différents, le programme ici ne le permet pas.
+> **Important :** le nom de la classe doit correspondre exactement au nom du
+> fichier (sans `.py`). Le découvreur de providers se base sur ce nom pour
+> l'enregistrement automatique.

@@ -16,6 +16,9 @@ dependencies = [
     "tzdata",
 ]
 
+[project.scripts]
+xmltvfr = "xmltvfr.cli.commands:main"
+
 [project.optional-dependencies]
 dev = [
     "ruff",
