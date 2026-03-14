@@ -1,0 +1,37 @@
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# PHP legacy code (not used by the Python image)
+src/
+vendor/
+composer.json
+composer.lock
+manager.php
+phpstan.neon.dist
+phpunit.xml
+commands/
+tools/
+
+# PHP / legacy tests
+tests/
+
+# Python development & test files
+python/tests/
+python/guidelines/
+python/.mypy_cache/
+python/.ruff_cache/
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.egg-info/
+
+# Documentation
+docs/
+README_AI_MIGRATION.md
+guidelines/
+
+# Misc
+makefile
+integrity.sha256

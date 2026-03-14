@@ -175,7 +175,17 @@ xmltvfr help
 ## Via Docker
 
 ```bash
+# Générer l'EPG (commande par défaut)
 docker run -v ./var/export:/app/var/export -v ./config/:/app/config xmltvfr
+
+# Afficher l'aide
+docker run --rm xmltvfr xmltvfr help
+
+# Récupérer le programme d'une chaine pour un provider et une date donnés
+docker run --rm -v ./var/cache:/app/var/cache xmltvfr xmltvfr fetch-channel TF1.fr Orange 2025-12-14 content.xml
+
+# Mettre à jour les logos par défaut depuis un provider
+docker run --rm xmltvfr xmltvfr update-default-logos MyCanal
 ```
 
 Remplacez `./var/export` par le dossier de sortie souhaité.
