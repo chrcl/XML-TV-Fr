@@ -1,0 +1,112 @@
+name: Generate XMLTV (reusable)
+
+# Reusable workflow called by other workflows to generate XMLTV EPG files
+# from the published container image.  Callers pass channel-set and
+# time-range inputs; generated XML and archives are uploaded as a named
+# GitHub Actions artifact.
+
+on:
+  workflow_call:
+    inputs:
+      channels_file:
+        description: >
+          Repo-relative path to a channels JSON file (e.g. channels/tnt.json).
+          Defaults to channels/all.json.
+        type: string
+        default: channels/all.json
+      days:
+        description: Number of days of EPG data to fetch (1–14).
+        type: number
+        default: 8
+      output_name:
+        description: >
+          Base filename for the generated output files (without extension),
+          e.g. "xmltv-tnt".  The generator appends .xml / .xml.gz / .xml.zip.
+        type: string
+        default: xmltv
+      nb_threads:
+        description: Number of parallel fetch threads (≥ 1).
+        type: number
+        default: 4
+      artifact_name:
+        description: Name of the GitHub Actions artifact that receives the output files.
+        type: string
+        default: xmltv-output
+      image_tag:
+        description: >
+          Tag of the ghcr.io image to use (default: latest).
+          Override to pin a specific SHA or branch tag.
+        type: string
+        default: latest
+    outputs:
+      artifact_name:
+        description: Name of the artifact that was uploaded.
+        value: ${{ jobs.generate.outputs.artifact_name }}
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+
+    outputs:
+      artifact_name: ${{ inputs.artifact_name }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create working directories
+        run: mkdir -p run/config run/export
+
+      - name: Write config.json
+        # GitHub Actions substitutes ${{ ... }} before the shell runs,
+        # so numeric inputs are safely embedded into JSON.
+        run: |
+          cat > run/config/config.json << 'JSONEOF'
+          {
+            "days": ${{ inputs.days }},
+            "cache_max_days": 0,
+            "output_path": "var/export/",
+            "enable_gz": true,
+            "enable_zip": true,
+            "enable_xz": false,
+            "enable_dummy": false,
+            "delete_raw_xml": false,
+            "force_todays_grab": true,
+            "guides_to_generate": [
+              {
+                "channels": "config/channels.json",
+                "filename": "${{ inputs.output_name }}.xml"
+              }
+            ],
+            "nb_threads": ${{ inputs.nb_threads }},
+            "ui": "ProgressiveUI"
+          }
+          JSONEOF
+
+      - name: Copy channels file
+        run: cp "${{ inputs.channels_file }}" run/config/channels.json
+
+      - name: Pull Docker image
+        run: |
+          docker pull "ghcr.io/${{ github.repository_owner }}/xml-tv-fr:${{ inputs.image_tag }}"
+
+      - name: Generate XMLTV
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/run/config:/app/config:ro" \
+            -v "${{ github.workspace }}/run/export:/app/var/export" \
+            "ghcr.io/${{ github.repository_owner }}/xml-tv-fr:${{ inputs.image_tag }}" \
+            xmltvfr export
+
+      - name: List generated files
+        run: ls -lh run/export/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: run/export/
+          retention-days: 7

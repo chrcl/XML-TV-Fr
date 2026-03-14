@@ -1,10 +1,10 @@
-name: Build Docker image on pull request
+name: Build Docker image (validation)
 on:
   workflow_dispatch:
   pull_request:
-  push:
-    branches:
-      - master
+    paths:
+      - Dockerfile
+      - python/**
 
 jobs:
   build:
