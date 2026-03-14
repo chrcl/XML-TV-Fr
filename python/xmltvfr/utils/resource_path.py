@@ -5,19 +5,26 @@ Migrated from PHP: src/Component/ResourcePath.php
 
 from __future__ import annotations
 
+import importlib.resources
 from pathlib import Path
 from typing import ClassVar
 
 
 class ResourcePath:
-    """Resolves paths to the resources/ directory at the repo root."""
+    """Resolves paths to the resources bundled with the xmltvfr package.
+
+    Uses :func:`importlib.resources.files` so that resource files are found
+    correctly regardless of whether the package was installed in editable mode
+    or as a regular wheel/sdist installation.
+    """
 
     _instance: ClassVar[ResourcePath | None] = None
 
     def __init__(self) -> None:
-        # __file__ is python/xmltvfr/utils/resource_path.py
-        # parents[0] = utils/, parents[1] = xmltvfr/, parents[2] = python/, parents[3] = repo root
-        self._resource_path: Path = Path(__file__).parents[3] / "resources"
+        # importlib.resources.files() returns the package root regardless of
+        # install mode (editable, wheel, zip-import …).  Converting to a real
+        # Path here keeps the rest of the code identical to before.
+        self._resource_path: Path = Path(str(importlib.resources.files("xmltvfr") / "resources"))
 
     @classmethod
     def get_instance(cls) -> ResourcePath:
@@ -37,3 +44,7 @@ class ResourcePath:
     def get_rating_picto_path(self) -> Path:
         """Return the path to the ratings picto JSON file."""
         return self._resource_path / "information" / "ratings_picto.json"
+
+    def get_config_path(self, filename: str) -> Path:
+        """Return the path to a default config resource file."""
+        return self._resource_path / "config" / filename

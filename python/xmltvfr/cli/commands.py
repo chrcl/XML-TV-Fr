@@ -30,17 +30,22 @@ def cmd_export(args: argparse.Namespace) -> None:
 
     from xmltvfr.config.configurator import Configurator
     from xmltvfr.utils import logger
+    from xmltvfr.utils.resource_path import ResourcePath
+
+    rp = ResourcePath.get_instance()
 
     # Ensure default config / channels files exist
     if not os.path.exists("config/config.json"):
         os.makedirs("config", exist_ok=True)
-        if os.path.exists("resources/config/default_config.json"):
-            shutil.copy("resources/config/default_config.json", "config/config.json")
+        default = rp.get_config_path("default_config.json")
+        if default.exists():
+            shutil.copy(str(default), "config/config.json")
 
     if not os.path.exists("config/channels.json"):
         os.makedirs("config", exist_ok=True)
-        if os.path.exists("resources/config/default_channels.json"):
-            shutil.copy("resources/config/default_channels.json", "config/channels.json")
+        default = rp.get_config_path("default_channels.json")
+        if default.exists():
+            shutil.copy(str(default), "config/channels.json")
 
     logger.set_log_level("debug")
     logger.set_log_folder("var/logs/")
@@ -127,6 +132,7 @@ def cmd_update_default_logos(args: argparse.Namespace) -> None:
     import json
 
     from xmltvfr.config.configurator import Configurator
+    from xmltvfr.utils.resource_path import ResourcePath
     from xmltvfr.utils.utils import colorize, get_provider
 
     provider_class = get_provider(args.provider)
@@ -137,8 +143,8 @@ def cmd_update_default_logos(args: argparse.Namespace) -> None:
     client = Configurator.get_default_client()
     provider = provider_class(client, "", 0.5)
 
-    path = "resources/information/default_channels_infos.json"
-    with open(path, encoding="utf-8") as fh:
+    path = ResourcePath.get_instance().get_channel_info_path()
+    with path.open(encoding="utf-8") as fh:
         default_channel_infos: dict = json.load(fh)
 
     print(colorize(f"Mise à jour des logos depuis {args.provider}...", "green"))

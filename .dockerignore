@@ -17,6 +17,9 @@ tools/
 # PHP / legacy tests
 tests/
 
+# Top-level resources are bundled inside the Python package; not needed here
+resources/
+
 # Python development & test files
 python/tests/
 python/guidelines/

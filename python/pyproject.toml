@@ -5,6 +5,9 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 include = ["xmltvfr*"]
 
+[tool.setuptools.package-data]
+"xmltvfr" = ["resources/**/*"]
+
 [project]
 name = "xmltvfr"
 version = "0.1.0"

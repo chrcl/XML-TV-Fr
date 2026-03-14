@@ -8,9 +8,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Copy the Python package and the bundled resource files
+# Copy the Python package (resources are bundled inside the package)
 COPY python/ ./python/
-COPY resources/ ./resources/
 
 # Install the package (production deps only)
 RUN pip install --no-cache-dir ./python/

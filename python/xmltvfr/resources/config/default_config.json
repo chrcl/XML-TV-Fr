@@ -1,0 +1,18 @@
+{
+  "days" : 8,
+  "cache_max_days": 8,
+  "output_path": "var/export/",
+  "time_limit": null,
+  "memory_limit": -1,
+  "delete_raw_xml": false,
+  "enable_gz": true,
+  "enable_xz":false,
+  "enable_zip": true,
+  "enable_dummy":  false,
+  "custom_priority_orders": {},
+  "guides_to_generate": [{"channels": "config/channels.json", "filename": "xmltv.xml"}],
+  "7zip_path": null,
+  "force_todays_grab": false,
+  "nb_threads": 1,
+  "ui": "MultiColumnUI"
+}
