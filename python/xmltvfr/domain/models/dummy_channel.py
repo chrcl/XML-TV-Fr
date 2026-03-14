@@ -29,17 +29,12 @@ class DummyChannel(Channel):
     """
 
     def __init__(self, id_: str, date: str) -> None:
-        # Lazy import — ChannelFactory does not exist yet; the import will
-        # succeed once the factory module is migrated.
-        try:
-            from xmltvfr.domain.static.channel_factory import ChannelFactory  # noqa: PLC0415
+        # Lazy import to avoid a circular dependency at module load time.
+        from xmltvfr.domain.services.channel_factory import ChannelFactory  # noqa: PLC0415
 
-            ref = ChannelFactory.create_channel(id_)
-            icon = ref.icon
-            name = ref.name
-        except ImportError:
-            icon = None
-            name = None
+        ref = ChannelFactory.create_channel(id_)
+        icon = ref.icon
+        name = ref.name
 
         super().__init__(id=id_, icon=icon, name=name)
 
