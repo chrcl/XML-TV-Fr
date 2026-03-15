@@ -14,6 +14,12 @@ from xmltvfr.utils.resource_path import ResourcePath
 
 
 class TeleLoisirs(AbstractProvider):
+    @staticmethod
+    def _extract_block_text(block: str, start_marker: str, end_marker: str) -> str:
+        if start_marker not in block:
+            return ""
+        return block.split(start_marker, 1)[1].split(end_marker, 1)[0].strip()
+
     def __init__(
         self,
         client: requests.Session,
@@ -40,33 +46,9 @@ class TeleLoisirs(AbstractProvider):
             title, _, _ = rest.partition('"')
             srcset = (block.split('srcset="', 1)[1] if 'srcset="' in block else "").split('"', 1)[0]
             image = srcset.split(" ")[0].replace("64x90", "640x360") if srcset else ""
-            genre = (
-                
-                    (
-                        block.split('<div class="mainBroadcastCard-genre">', 1)[1]
-                        if '<div class="mainBroadcastCard-genre">' in block
-                        else ""
-                    ).split("</div>", 1)[0]
-                
-            ).strip()
-            genre_format = (
-                
-                    (
-                        block.split('<p class="mainBroadcastCard-format">', 1)[1]
-                        if '<p class="mainBroadcastCard-format">' in block
-                        else ""
-                    ).split("</p>", 1)[0]
-                
-            ).strip()
-            subtitle = (
-                
-                    (
-                        block.split('<p class="mainBroadcastCard-subtitle">', 1)[1]
-                        if '<p class="mainBroadcastCard-subtitle">' in block
-                        else ""
-                    ).split("</p>", 1)[0]
-                
-            ).strip()
+            genre = self._extract_block_text(block, '<div class="mainBroadcastCard-genre">', "</div>")
+            genre_format = self._extract_block_text(block, '<p class="mainBroadcastCard-format">', "</p>")
+            subtitle = self._extract_block_text(block, '<p class="mainBroadcastCard-subtitle">', "</p>")
             start_section = block.split('<p class="mainBroadcastCard-startingHour"', 1)
             if len(start_section) < 2:
                 continue

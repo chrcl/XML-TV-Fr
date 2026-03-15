@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -46,7 +47,7 @@ class Cogeco(AbstractProvider):
         payload = self._get_content_from_url(
             self.generate_url(start), headers={"Cookie": f"TVMDS_Cookie={self.COOKIE_VALUE}"}
         )
-        return (payload and __import__("json").loads(payload).get("data")) if payload else None  # noqa: PLC2701
+        return (payload and json.loads(payload).get("data")) if payload else None
 
     @staticmethod
     def _generate_program_details_url(path: str) -> str:
