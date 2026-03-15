@@ -234,13 +234,13 @@ configuration.
 ## Image Docker (GHCR)
 
 L'image Docker est construite et publiée automatiquement sur
-**GitHub Container Registry** à chaque push sur la branche `master` qui modifie
+**GitHub Container Registry** à chaque push sur la branche `main` qui modifie
 `Dockerfile` ou le code Python (`python/**`).
 
 | Image | Description |
 |---|---|
-| `ghcr.io/chrcl/xml-tv-fr:latest` | Dernière version de la branche `master` |
-| `ghcr.io/chrcl/xml-tv-fr:master` | Tag de branche |
+| `ghcr.io/chrcl/xml-tv-fr:latest` | Dernière version de la branche `main` |
+| `ghcr.io/chrcl/xml-tv-fr:main` | Tag de branche |
 | `ghcr.io/chrcl/xml-tv-fr:sha-<sha>` | Tag de commit exact |
 
 Le workflow correspondant est [`.github/workflows/docker-publish.yml`](.github/workflows/docker-publish.yml).  
@@ -269,7 +269,7 @@ les fichiers EPG sans reconstruire l'image.
 ```yaml
 jobs:
   my-generation:
-    uses: chrcl/XML-TV-Fr/.github/workflows/generate-xmltv.yml@master
+    uses: chrcl/XML-TV-Fr/.github/workflows/generate-xmltv.yml@main
     with:
       channels_file: channels/tnt.json
       days: 7
