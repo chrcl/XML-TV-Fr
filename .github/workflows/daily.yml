@@ -33,9 +33,9 @@ jobs:
             days: 8
             output_name: xmltv-all
             artifact_name: xmltv-all
-          # French TNT free-to-air channels — 8-day window
+          # French TNT free-to-air channels — 14-day window
           - channels_file: channels/tnt.json
-            days: 8
+            days: 14
             output_name: xmltv-tnt
             artifact_name: xmltv-tnt
     uses: ./.github/workflows/generate-xmltv.yml
