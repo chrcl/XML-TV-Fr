@@ -1,0 +1,152 @@
+name: Daily XMLTV generation and publish
+
+# Runs every day at 03:00 UTC.
+# Calls the reusable generate-xmltv.yml workflow for each channel-set /
+# time-range configuration defined in the matrix, then assembles all
+# generated files into a GitHub Pages site for easy download.
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+# Allow only one concurrent Pages deployment; cancel in-progress if superseded.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Generation — one matrix entry per channel-set / time-range variant.
+  # Add more entries here to produce additional output files.
+  # ---------------------------------------------------------------------------
+  generate:
+    permissions:
+      contents: read
+      packages: read
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          # All channels — 8-day window
+          - channels_file: channels/all.json
+            days: 8
+            output_name: xmltv-all
+            artifact_name: xmltv-all
+          # French TNT free-to-air channels — 14-day window
+          - channels_file: channels/tnt.json
+            days: 14
+            output_name: xmltv-tnt
+            artifact_name: xmltv-tnt
+    uses: ./.github/workflows/generate-xmltv.yml
+    with:
+      channels_file: ${{ matrix.config.channels_file }}
+      days: ${{ matrix.config.days }}
+      output_name: ${{ matrix.config.output_name }}
+      artifact_name: ${{ matrix.config.artifact_name }}
+
+  # ---------------------------------------------------------------------------
+  # Publish — download all artifacts, build an index page, deploy to Pages.
+  # ---------------------------------------------------------------------------
+  publish:
+    needs: generate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all generated artifacts
+        uses: actions/download-artifact@v4
+        with:
+          # Each artifact lands in pages/<artifact-name>/
+          path: pages/
+
+      - name: Move files to pages root
+        # Flatten: pages/xmltv-all/xmltv-all.xml → pages/xmltv-all.xml
+        run: |
+          for dir in pages/*/; do
+            if [ -d "$dir" ]; then
+              mv "$dir"* pages/ 2>/dev/null || true
+              rmdir "$dir" 2>/dev/null || true
+            fi
+          done
+          ls -lh pages/
+
+      - name: Generate index page
+        run: |
+          python3 - <<'PYEOF'
+          import os, datetime, html
+
+          pages_dir = "pages"
+          files = sorted(f for f in os.listdir(pages_dir) if not f.startswith(".") and f != "index.html")
+
+          now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+
+          rows = []
+          for name in files:
+              path = os.path.join(pages_dir, name)
+              size = os.path.getsize(path)
+              size_str = f"{size / 1024:.1f} KB" if size < 1_048_576 else f"{size / 1_048_576:.1f} MB"
+              safe_name = html.escape(name)
+              rows.append(
+                  f'<tr><td><a href="{safe_name}">{safe_name}</a></td>'
+                  f'<td class="size">{size_str}</td></tr>'
+              )
+
+          rows_html = "\n          ".join(rows)
+
+          index = f"""<!DOCTYPE html>
+          <html lang="fr">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>XML TV Fr — EPG downloads</title>
+            <style>
+              body {{ font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }}
+              h1 {{ color: #1a73e8; }}
+              table {{ width: 100%; border-collapse: collapse; margin-top: 1rem; }}
+              th, td {{ text-align: left; padding: .5rem .75rem; border-bottom: 1px solid #e0e0e0; }}
+              th {{ background: #f5f5f5; }}
+              td.size {{ color: #555; text-align: right; }}
+              a {{ color: #1a73e8; text-decoration: none; }}
+              a:hover {{ text-decoration: underline; }}
+              footer {{ margin-top: 2rem; font-size: .85rem; color: #888; }}
+            </style>
+          </head>
+          <body>
+            <h1>XML TV Fr — EPG downloads</h1>
+            <p>French Electronic Programme Guide files, generated daily from
+               <a href="https://github.com/chrcl/XML-TV-Fr">chrcl/XML-TV-Fr</a>.</p>
+            <table>
+              <thead><tr><th>File</th><th style="text-align:right">Size</th></tr></thead>
+              <tbody>
+              {rows_html}
+              </tbody>
+            </table>
+            <footer>Last updated: {now}</footer>
+          </body>
+          </html>
+          """
+
+          with open(os.path.join(pages_dir, "index.html"), "w") as fh:
+              fh.write(index)
+
+          print("index.html written")
+          PYEOF
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: pages/
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
