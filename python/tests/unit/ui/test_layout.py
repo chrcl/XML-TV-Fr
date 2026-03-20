@@ -36,11 +36,7 @@ def test_display_clears_old_lines():
     layout = Layout()
     layout.add_line(["a"], [10])
 
-    import sys
-
     cleared = []
-
-    original_write = sys.stdout.write
 
     def tracking_write(s):
         cleared.append(s)

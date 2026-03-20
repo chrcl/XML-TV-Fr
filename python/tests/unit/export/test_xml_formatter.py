@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
-
-from xmltvfr.domain.models.tag import Tag
 from xmltvfr.export.xml_formatter import XmlFormatter
 
 

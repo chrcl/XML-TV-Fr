@@ -58,8 +58,6 @@ def test_cmd_help_prints_commands(capsys):
 
 
 def test_main_no_command_prints_help(capsys):
-    import sys
-
     import pytest
 
     from xmltvfr.cli.commands import main
