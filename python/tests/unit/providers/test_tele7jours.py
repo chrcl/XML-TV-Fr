@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import pathlib
 import tempfile
 from datetime import datetime, timedelta
 from unittest.mock import patch
@@ -117,7 +116,6 @@ class TestGetDayLabel:
 class TestGenerateUrl:
     def test_url_format(self):
         from xmltvfr.domain.models.channel import Channel
-        from xmltvfr.providers.tele7jours import Tele7Jours
 
         provider = _make_provider({"TF1.fr": "tf1"})
         channel = Channel("TF1.fr", None, None)
@@ -126,7 +124,6 @@ class TestGenerateUrl:
 
     def test_url_today_empty_day_label(self):
         from xmltvfr.domain.models.channel import Channel
-        from xmltvfr.providers.tele7jours import Tele7Jours
 
         provider = _make_provider({"France2.fr": "france-2"})
         channel = Channel("France2.fr", None, None)
@@ -417,9 +414,6 @@ class TestConstructEpg:
                 return_value="mardi",
             ),
         ):
-            # Use a fixed "today" so _get_day_label doesn't raise
-            from unittest.mock import patch as _patch
-
             result = provider.construct_epg("TF1.fr", "2025-06-10")
 
         from xmltvfr.domain.models.channel import Channel
@@ -489,5 +483,4 @@ class TestInit:
     def test_priority_stored(self):
         from xmltvfr.providers.tele7jours import Tele7Jours
 
-        provider = _make_provider()
         assert Tele7Jours.get_priority() == pytest.approx(0.6)
