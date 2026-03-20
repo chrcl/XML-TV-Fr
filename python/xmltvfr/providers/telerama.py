@@ -124,9 +124,16 @@ class Telerama(AbstractProvider):
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _extract_broadcasts(json_data: dict, channel_id: str) -> list[dict]:
-        """Extract the broadcast list for *channel_id* from a parsed API response dict."""
-        return json_data.get("channels", {}).get(channel_id, {}).get("broadcasts", []) or []
+    def _extract_broadcasts(json_data: dict, channel_id: int | str) -> list[dict]:
+        """Extract the broadcast list for *channel_id* from a parsed API response dict.
+
+        The Telerama API always returns channel keys as strings (e.g. ``"192"``),
+        even when the channel config stores them as integers.  *channel_id* is
+        therefore coerced to ``str`` before the lookup so that an integer value
+        from the JSON config (e.g. ``192``) matches the API response key
+        (``"192"``).
+        """
+        return json_data.get("channels", {}).get(str(channel_id), {}).get("broadcasts", []) or []
 
     # ------------------------------------------------------------------
     # Program factory

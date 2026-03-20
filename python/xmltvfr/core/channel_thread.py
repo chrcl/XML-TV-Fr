@@ -140,8 +140,13 @@ class ChannelThread:
             self._status = colorize(msg, "magenta")
 
         task = ProviderTask(provider_name, date, self._channel or "", self._extra_params, _status_cb)
-        result = await asyncio.to_thread(task.run_sync)
-        self._manager.remove_channel_from_provider(provider_name, self._channel or "")
+        try:
+            result = await asyncio.to_thread(task.run_sync)
+        except Exception as exc:  # noqa: BLE001
+            logger.log(f"\nProviderTask error [{provider_name}/{self._channel}/{date}]: {exc}\n")
+            result = "false"
+        finally:
+            self._manager.remove_channel_from_provider(provider_name, self._channel or "")
         return result
 
     # ------------------------------------------------------------------
