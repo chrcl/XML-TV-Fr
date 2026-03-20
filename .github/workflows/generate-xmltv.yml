@@ -105,7 +105,7 @@ jobs:
         run: ls -lh run/export/
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ inputs.artifact_name }}
           path: run/export/
