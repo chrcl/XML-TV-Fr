@@ -649,3 +649,53 @@ def test_telecablesat_returns_programs():
     with patch.object(provider, "_get_content", side_effect=["", content]):
         result = provider.construct_epg("TF1.fr", "2025-06-10")
     _assert_channel_title(result, "Telecable Show")
+
+
+def test_telerama_extract_broadcasts_with_integer_channel_id():
+    """_extract_broadcasts must match string keys in the API response even when
+    the channel config stores the ID as an integer (e.g. 192 → "192")."""
+    from xmltvfr.providers.telerama import Telerama
+
+    broadcast = {"start_date": "2025-06-10 20:00:00", "end_date": "2025-06-10 21:00:00", "title": "Test"}
+    # The Telerama API always returns channel keys as strings.
+    api_response = {"channels": {"192": {"broadcasts": [broadcast]}}}
+
+    # Integer channel_id (as loaded from channels_telerama.json via json.load)
+    result_int = Telerama._extract_broadcasts(api_response, 192)
+    assert result_int == [broadcast], "Integer channel_id should match string key in API response"
+
+    # String channel_id also continues to work
+    result_str = Telerama._extract_broadcasts(api_response, "192")
+    assert result_str == [broadcast], "String channel_id should still match"
+
+    # Missing channel returns empty list
+    assert Telerama._extract_broadcasts(api_response, 999) == []
+
+
+def test_telerama_returns_programs():
+    """Telerama.construct_epg returns programs when channel config uses integer IDs."""
+    # channels_telerama.json stores IDs as integers (e.g. {"TF1.fr": 192})
+    provider = _make_provider(
+        "telerama",
+        "Telerama",
+        {"TF1.fr": 192},
+        priority=0.9,
+        extra_params={"telerama_enable_details": False},
+    )
+    broadcast = {
+        "start_date": "2025-06-10 20:00:00",
+        "end_date": "2025-06-10 21:30:00",
+        "title": "Telerama Show",
+        "type": "Film",
+        "is_inedit": False,
+        "illustration": None,
+        "flags": [],
+        "deeplink": None,
+    }
+    # The API returns channels keyed by string IDs, even for integer configs.
+    api_response = json.dumps({"channels": {"192": {"broadcasts": [broadcast]}}})
+    empty_response = json.dumps({})
+    # Two calls: day_before (empty) + target_day (with programs)
+    with patch.object(provider, "_get_content_from_url", side_effect=[empty_response, api_response]):
+        result = provider.construct_epg("TF1.fr", "2025-06-10")
+    _assert_channel_title(result, "Telerama Show")

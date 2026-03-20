@@ -89,7 +89,7 @@ def get_channel_data_from_provider(provider: Any, channel_id: str, date: str) ->
 
         formatter = XmlFormatter()
         return formatter.format_channel(obj, provider)
-    except ImportError:
+    except Exception:  # noqa: BLE001
         return "false"
 
 
