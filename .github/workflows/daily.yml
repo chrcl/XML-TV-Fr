@@ -30,7 +30,7 @@ jobs:
         config:
           # All channels — 8-day window
           - channels_file: channels/all.json
-            days: 8
+            days: 2
             output_name: xmltv-all
             artifact_name: xmltv-all
           # French TNT free-to-air channels — 14-day window
